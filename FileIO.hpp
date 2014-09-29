@@ -11,6 +11,8 @@ std::string readFormat(std::ifstream &file);
 void readSize(std::ifstream &file, int* rows, int* cols);
 int readColour(std::ifstream &file);
 void writeFile(Image *image, std::string location);
+Image* loadImage(char* location);
+void getImage(std::ifstream& f, int *buffer,int rows, int cols);
 
 
 #endif

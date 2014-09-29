@@ -10,6 +10,7 @@ class Image {
 	int* blue; 
 public:
 	Image(int inRows, int inCols, int inMaxColours);
+	Image();
 	~Image();
 	int getRows();
 	int getCols();
@@ -21,6 +22,8 @@ public:
 	void setGreen(int *inGreen);
 	void setColours(int inColours);
 	int getColours();
+	void setRows(int inRows);
+	void setCols(int inCols);
 };
 
 

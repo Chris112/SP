@@ -10,7 +10,11 @@ Image::Image(int inRows, int inCols, int inMaxColours){
 
 	red = new int[rows*cols];
 	green = new int[rows*cols];
-	blue = new int[rows*cols];
+	blue = new int[rows*cols]; 
+
+}
+
+Image::Image(){
 
 }
 
@@ -58,4 +62,13 @@ void Image::setColours(int inColours){
 
 int Image::getColours(){
 	return maxColours;
+}
+
+
+void Image::setRows(int inRows){
+	rows = inRows;
+}
+
+void Image::setCols(int inCols){
+	cols = inCols;
 }
