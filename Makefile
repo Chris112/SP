@@ -13,5 +13,8 @@ FileIO.o: FileIO.cpp FileIO.hpp
 Operations.o: Operations.cpp Operations.hpp
 	g++ -c -g Operations.cpp Operations.hpp
 
+buffer1: main.o FileIO.o Operations.o Image.o
+	echo Buffer overflowing max resize value to allow for massive resizing. Right now fields are 76 bytes apart, check with GDB before submitting assignment
+	setarch `arch` -R ./program resizeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 6 test2.ppm output.ppm 
 clean:
 	rm -rf *o program

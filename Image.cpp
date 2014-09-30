@@ -1,4 +1,5 @@
 #include "Image.hpp"
+#include <iostream>
 
 
 
@@ -8,9 +9,9 @@ Image::Image(int inRows, int inCols, int inMaxColours){
 	cols = inCols;
 	maxColours = inMaxColours;
 
-	red = new int[rows*cols];
-	green = new int[rows*cols];
-	blue = new int[rows*cols]; 
+	red = NULL;//new int[rows*cols];
+	green = NULL;//new int[rows*cols];
+	blue = NULL;//new int[rows*cols]; 
 
 }
 
@@ -19,6 +20,7 @@ Image::Image(){
 }
 
 Image::~Image(){
+	std::cout << "Freeing an image." << std::endl;
 	delete[] red;
 	delete[] green;
 	delete[] blue;

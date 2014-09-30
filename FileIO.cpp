@@ -182,6 +182,7 @@ for (int i=0;i<rows*cols*3;i++) {
 		//
 	}
 	outputFile.flush();
+	delete[] imageBuffer;
 
 }
 
@@ -193,7 +194,6 @@ Image* loadImage(char* location){
 	std::ifstream file;
 	file.open(location); // = argv[1];
 
-	// implement
 
 	Image *image = NULL;
 	std::string inFormat;
@@ -270,15 +270,17 @@ Image* loadImage(char* location){
 			blue = NULL;
 			green = NULL;
 
+			file.close();
 			return image;
 
 			} else {
 				std::cout << inFormat << " does not match" << formats[0] << ".\n";
+				file.close();
 		}
 
-		file.close();
+		//file.close();
 	}
-	std::cout << "Unable to open file" << std::endl;
+	std::cout << "Unable to open file '" << location << "'" << std::endl;
 }
 
 

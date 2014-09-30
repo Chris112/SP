@@ -3,6 +3,7 @@
 
 
 class Image {
+public:
 	int rows, cols, maxColours;
 
 	int* red;
