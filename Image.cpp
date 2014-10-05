@@ -10,6 +10,8 @@
 #include "Image.hpp"
 #include <iostream>
 
+ #include <stdio.h>
+
 
 
 
@@ -28,7 +30,14 @@ Image::Image(){
 
 }
 
+Image::Image(Image* inImage){
+ rows = inImage->getRows();
+ cols = inImage->getCols();
+ maxColours = inImage->getColours();
+}
+
 Image::~Image(){
+	printf("Freeing an image.\n");
 	delete[] red;
 	delete[] green;
 	delete[] blue;

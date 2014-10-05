@@ -14,7 +14,7 @@ Operations.o: Operations.cpp Operations.hpp
 	g++ -c -g Operations.cpp Operations.hpp
 
 buffer1: main.o FileIO.o Operations.o Image.o
-	setarch `arch` -R ./CCSEPAssignment resizeaaaaaaaaaaa 6 test2.ppm output.ppm 
+	setarch `arch` -R ./CCSEPAssignment resizeaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 50 test2.ppm output.ppm 
 
 
 disabled: main.o FileIO.o Operations.o Image.o

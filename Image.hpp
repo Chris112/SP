@@ -12,6 +12,8 @@ public:
 public:
 	Image(int inRows, int inCols, int inMaxColours);
 	Image();
+	Image(Image* inImage);
+
 	~Image();
 	int getRows();
 	int getCols();

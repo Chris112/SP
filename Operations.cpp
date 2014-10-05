@@ -130,27 +130,36 @@ Image* copy (Image *image) {
  */
 Image* resize(Image *image, char* inFactor){
 	printf("Resizing image by a factor of %s.\n", inFactor);
-	Image *newImage = NULL;
+	Image *newImage = new Image();
 
 	// convert factor to float
 	float factor = atof(inFactor);	 
 
+	int w1 = image->getCols();
+	int h1 = image->getRows();
+	int w2 = factor * image->getCols();
+	int h2 = factor * image->getRows();
+	//newImage = new Image(h2, w2, image->getColours());
+	newImage->setRows(h2);
+	newImage->setCols(w2);
+	newImage->setColours(image->getColours());
+
+	int *newRed   = new int[h2*w2];
+	int *newBlue  = new int[h2*w2];
+	int *newGreen = new int[h2*w2];
+
+	int x_ratio = (int)((w1<<16)/w2) +1;
+	int y_ratio = (int)((h1<<16)/h2) +1;
+
+	int x2, y2; 
+
+	newImage->setRed(newRed);
+	newImage->setBlue(newBlue);
+	newImage->setGreen(newGreen);
+
+
 	// implementation of nearest neighbour interpolation here
 	if (factor > 0) { // note: factor cant be negative. (0, 1] for reductions.
-		int w1 = image->getCols();
-		int h1 = image->getRows();
-		int w2 = factor * image->getCols();
-		int h2 = factor * image->getRows();
-		newImage = new Image(h2, w2, image->getColours());
-
-		int *newRed   = new int[h2*w2];
-		int *newBlue  = new int[h2*w2];
-		int *newGreen = new int[h2*w2];
-
-		int x_ratio = (int)((w1<<16)/w2) +1;
-		int y_ratio = (int)((h1<<16)/h2) +1;
-
-		int x2, y2; 
 
 		for (int i=0;i<h2;i++) {
 			for (int j=0;j<w2;j++) {
@@ -162,12 +171,11 @@ Image* resize(Image *image, char* inFactor){
 			}
 		}
 
-		newImage->setRed(newRed);
-		newImage->setBlue(newBlue);
-		newImage->setGreen(newGreen);
-
-		newRed = newGreen = newBlue = NULL;
-	} 
+	} else {
+		printf("Invalid factor, must be >0.\n");
+		newImage = NULL;
+	}
+	//newRed = newGreen = newBlue = NULL;
 	return newImage;
 }
 
@@ -195,13 +203,17 @@ Image* tile(int argc, char* image[]){
 	for (int i=0;i<argc-3;i++) {
 		loc = image[i+2];
 		// load image i and set all iamge metadata
-		tempImage = loadImage(image[i+2]);
-		imgs[i].setRows(tempImage->getRows());
-		imgs[i].setCols(tempImage->getCols());
-		imgs[i].setColours(tempImage->getColours());
-		imgs[i].setRed(tempImage->getRed());
-		imgs[i].setGreen(tempImage->getGreen());
-		imgs[i].setBlue(tempImage->getBlue());
+		//if (strcmp(loc, image[i+1]) != 0) { POTENTIAL FOR VULNERABILITY HERE
+			tempImage = loadImage(image[i+2]);
+			imgs[i].setRows(tempImage->getRows());
+			imgs[i].setCols(tempImage->getCols());
+			imgs[i].setColours(tempImage->getColours());
+			imgs[i].setRed(tempImage->getRed());
+			imgs[i].setGreen(tempImage->getGreen());
+			imgs[i].setBlue(tempImage->getBlue());
+			tempImage = NULL;
+		//	delete tempImage;
+			//}
 		//printf("Loading image %s with rowsxcols and colours: %dx%d, %d.\n", loc, imgs[i].getRows(), imgs[i].getCols(), imgs[i].getColours());
 	}
 
@@ -266,16 +278,18 @@ Image* tile(int argc, char* image[]){
 
 		}
 	}
-
+	printf("> made it here.\n");
 	// link new rgb to newly created image.
 	newImage->setRed(newRed);
 	newImage->setBlue(newBlue);
 	newImage->setGreen(newGreen);
 
-
+printf(">> made it here.\n");
 	// delete memory of old images.
 	delete[] imgs;
+printf(">>> made it here.\n");
 
+printf("Returning a %dx%d image\n", newImage->getRows(), newImage->getCols());
 	return newImage;
 }
 

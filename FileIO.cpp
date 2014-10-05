@@ -13,9 +13,11 @@
 #include <iostream>
 #include <fstream>
 
- const std::string POSSIBLE_FORMATS[3] = {"P1", "P2", "P3"};
+const std::string INVALID_FORMATS[3] = {"P1", "P2"};
+#define MAX_PIXELS_PER_IMAGE 3*10000*10000
 #define MAX_COMMENT_SIZE 1056
- static char comment[MAX_COMMENT_SIZE];
+static char comment[MAX_COMMENT_SIZE];
+static char outputFileLocation[30];
 
 
 /* FUNCTION: appendCharToCharArray
@@ -175,6 +177,8 @@ int readColour(std::ifstream &file){
 	 	printf("Comments from input file: \"");
 	 	printf(comment);
 	 	printf("\".\n");
+
+	 	printf("comment length: %d\n", strlen(comment));
 	 }
 	 return colour;
 	}
@@ -185,20 +189,19 @@ int readColour(std::ifstream &file){
  * DESCRIPTION:
  * Purpose is to write the image to a file at the specified location in the P3 ppm format.
  */
-void writeFile(Image *image, std::string location){
+void writeFile(Image *image){
  	std::ofstream outputFile;
- 	outputFile.open(location.c_str()); 
+
+ 	outputFile.open(outputFileLocation); 
 
 	// assert: source image was a P3 format.
  	outputFile << "P3\n";
  	outputFile << image->getCols() << " " << image->getRows() << '\n';
  	outputFile << image->getColours() << '\n';
-
  	int cols = image->getCols();
  	int rows = image->getRows();
 
  	int *imageBuffer = new int[3*cols * rows];
-
  	int pCount = 0;
  	for (int i=0;i<rows;i++) {
  		for (int j=0;j<cols*3;j+=3) {
@@ -213,10 +216,8 @@ void writeFile(Image *image, std::string location){
 
  		}
  	}
-
 	// Could change the hardcoded integers per line at some point
 	// int digits = 0; do { number /= 10; digits++; } while (number != 0);
-
  	for (int i=0;i<rows*(cols*3);i++) {
  		if (i == 0) {
  		} else if (i % 9 == 0) {
@@ -242,23 +243,23 @@ Image* loadImage(char* fileLocation){
  	std::ifstream file;
  	file.open(fileLocation); 
 
+ 	std::string *onlyValidFormat = new std::string("P3");
 
  	Image *image = NULL;
- 	std::string inFormat;
+ 	std::string inFormat;// = new std::string("Format not read yet.");
 
  	if (file.is_open()) {
  		inFormat = readFormat(file);
 
- 		if (inFormat.compare(POSSIBLE_FORMATS[0]) == 0) {
+ 		if (inFormat.compare(INVALID_FORMATS[0]) == 0) {
  			printf("Invalid format (P1).\n");
  			exit(EXIT_FAILURE);
 
- 		} else if ((inFormat.compare(POSSIBLE_FORMATS[1]) == 0)) {
+ 		} else if ((inFormat.compare(INVALID_FORMATS[1]) == 0)) {
  			printf("Invalid format (P2).\n");
  			exit(EXIT_FAILURE);
 
- 		} else if ((inFormat.compare(POSSIBLE_FORMATS[2]) == 0)) {
-
+ 		} else if ((inFormat.compare(onlyValidFormat->c_str()) == 0)) {
 			// read metadata about image
  			int cols, rows, maxColour;
  			readSize(file, &cols, &rows);
@@ -273,6 +274,8 @@ Image* loadImage(char* fileLocation){
 
 			// red[i][j] is then rewritten as red[i*cols+j] when using 1D arrays.
 
+
+
  			int *imageBuffer = new int[(3*cols) * rows];
 
 			// create space on heap for image data
@@ -282,6 +285,8 @@ Image* loadImage(char* fileLocation){
 
 			// load image data from file into imageBuffer for processing
  			getImage(file, imageBuffer, rows, cols);
+
+
 
 			// process data into r, g and b arrays.
  			int pCount=0;
@@ -297,6 +302,7 @@ Image* loadImage(char* fileLocation){
 			// freeing imageBuffer now we are done reading from it.
  			delete[] imageBuffer;
 
+
 			// assign r, g and b arrays to the newly created image
  			image->setRed(red);
  			image->setBlue(blue);
@@ -306,6 +312,7 @@ Image* loadImage(char* fileLocation){
  			blue = NULL;
  			green = NULL;
 
+ 			delete onlyValidFormat;
  			file.close();
 
  		} else {
@@ -334,5 +341,15 @@ void getImage(std::ifstream& f, int *buffer,int rows, int cols){
  		f >> buffer[i];
  		count++;
  	}
+ 	//printf("read %d numbers from file.\n", count);
 }
 
+
+/* FUNCTION: outLocation
+ * IMPORT: A location of a file output to.
+ * DESCRIPTION:
+ * Set the name of the output file.
+ */
+void setOutputFileLocation(char *outLocation){
+	memcpy(outputFileLocation, outLocation, strlen(outLocation));
+}
