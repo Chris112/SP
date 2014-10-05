@@ -15,6 +15,7 @@ public:
 	~Image();
 	int getRows();
 	int getCols();
+	int getColours();
 	int* getRed();
 	int* getBlue();
 	int* getGreen();
@@ -22,7 +23,6 @@ public:
 	void setBlue(int *inBlue);
 	void setGreen(int *inGreen);
 	void setColours(int inColours);
-	int getColours();
 	void setRows(int inRows);
 	void setCols(int inCols);
 };
@@ -30,3 +30,4 @@ public:
 
 
 #endif
+

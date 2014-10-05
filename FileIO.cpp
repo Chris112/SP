@@ -1,299 +1,338 @@
+/*
+ * FILE: FileIO.cpp
+ * AUTHOR: Christopher Webb
+ * DATE CREATED: 5/10/14
+ * DESCRIPTION:
+ * FileIO.cpp is responsible for managing the reading and writing to/from files for the 
+ * program.
+ */
+
+
 #include "FileIO.hpp"
 #include "Image.hpp"
 #include <iostream>
 #include <fstream>
 
-const std::string formats[3] = {"P1", "P2", "P3"};
+ const std::string POSSIBLE_FORMATS[3] = {"P1", "P2", "P3"};
+#define MAX_COMMENT_SIZE 1056
+ static char comment[MAX_COMMENT_SIZE];
 
 
+/* FUNCTION: appendCharToCharArray
+ * IMPORT: a single character
+ * DESCRIPTION:
+ * Purpose is to append a character to a string and shuffle the null terminator back.
+ */
+void appendCharToCharArray(char c) {
+	//printf("adding %c to comment string.\n", c);
+ 	size_t len = strlen(comment);
+
+ 	comment[len] = c;
+ 	comment[len+1] = '\0';
+}
+
+/* FUNCTION: readFormat
+ * IMPORT: ifstream reference to an open file
+ * DESCRIPTION:
+ * Purpose is to parse the file searching for the format of the image and storing any
+ * comments encountered in the comment buffer.
+ */
 std::string readFormat(std::ifstream &file){
-	// remove potential # comment before format
-	//std::cout << "Getting the format: " << std::endl;
-	char c;
-	std::string format;
+	// zero the comment buffer
+ 	for (int i=0; i < MAX_COMMENT_SIZE; i++) {
+ 		comment[i] = 0;
+ 	}
 
-	file.get(c);
-	while (c != 'P') { 
+ 	char c;
+ 	std::string format;
+
+	// remove any comments before the format.
+ 	file.get(c);
+	while (c != 'P') { // current line is not the format, skip over until new line character.
+		appendCharToCharArray(c);
 		file.get(c);
-		//cout << "checking if first char of file is 'P': " << c << endl;
+
 		while (c != '\n') {
+			appendCharToCharArray(c);
 			file.get(c);
-			//cout << "line must be comment, read till '\\n' and check next line: " << c << endl;
-			//std::this_thread::sleep_for (std::chrono::seconds(1));
 		}
 		file.get(c); // get the first char of the new line
-		//cout << "End of line found, checking first char of next line for a 'P': " << c << endl;
 	}
 	file.unget();
 
 	file >> format;
 
-
-
-	// If there is a comment after the format, skip over the rest of the line.
+	// If there is a comment after the format on the same line, skip over the rest of the line.
 	file.get(c);
 	if (c != '\n') {
+		appendCharToCharArray(c);
 		file.get(c);
 		while (c != '\n') {
+			appendCharToCharArray(c);
 			file.get(c);
 		}
 	}
 
-	// get file pointer up to rows/cols
+	// get file pointer up to rows/cols, removing comments.
 	file.get(c);
-	//cout << "examining1: " << c << endl;
 	while (c < '0' || c > '9') {
+		appendCharToCharArray(c);
 		file.get(c);
-		//cout << "examining2: " << c << endl;
 		while (c != '\n') {
+			appendCharToCharArray(c);
 			file.get(c);
-			//cout << "examining3: " << c << endl;
-			//std::this_thread::sleep_for (std::chrono::seconds(1));
 		}
-		file.get(c); // get this first char of the new line
+		file.get(c); 
 	}
 	file.unget();
-
-	//std::cout << "Got the format: " << format << std::endl;
-
 	return format;
 }
 
+
+/* FUNCTION: readSize
+ * IMPORT: ifstream reference to an open file, integer reference to rows and cols
+ * DESCRIPTION:
+ * Purpose is to parse the file searching for the rows and cols of the image within the file,
+ * removing comments along the way.
+ */
 void readSize(std::ifstream &file, int* rows, int* cols){
+	// assert: file pointer is up to the rows/cols.
+ 	file >> *rows >> *cols;
+ 	char c;
 
-	file >> *rows >> *cols;
-	char c;
 
+	// If there is a comment after cols on the same line, remove it.
+ 	file.get(c);
+ 	if (c != '\n') {
+ 		appendCharToCharArray(c);
+ 		file.get(c);
+ 		while (c != '\n') {
+ 			appendCharToCharArray(c);
+ 			file.get(c);
+ 		}
+ 	}
 
-	// If there is a comment after cols, remove it.
-	file.get(c);
-	if (c != '\n') {
-		file.get(c);
-		while (c != '\n') {
-			file.get(c);
-		}
-	}
-
-	// get file pointer up to colour
-	file.get(c);
-	while (c < '0' || c > '9') {
-		file.get(c);
-		while (c != '\n') {
-			file.get(c);
-		}
-		file.get(c); // get this first char of the new line
-	}
-	file.unget();
+	// get file pointer up to colour, removing comments along the way.
+ 	file.get(c);
+ 	while (c < '0' || c > '9') {
+ 		appendCharToCharArray(c);
+ 		file.get(c);
+ 		while (c != '\n') {
+ 			appendCharToCharArray(c);
+ 			file.get(c);
+ 		}
+ 		file.get(c);
+ 	}
+ 	file.unget();
 
 }
 
+
+
+/* FUNCTION: readColour
+ * IMPORT: ifstream reference to an open file
+ * DESCRIPTION:
+ * Purpose is to parse the file searching for the max colours of the image within the file,
+ * removing comments along the way.
+ */
 int readColour(std::ifstream &file){
+	// assert: file pointer is up to max colour of image within file.
+ 	int colour;
+ 	char c;
+ 	file >> colour;
 
-	int colour;
-	char c;
-	file >> colour;
+	// If there is a comment after colour on the same line, remove it.
+ 	file.get(c);
+ 	if (c != '\n') {
+ 		appendCharToCharArray(c);
+ 		file.get(c);
+ 		while (c != '\n') {
+ 			appendCharToCharArray(c);
+ 			file.get(c);
+ 		}
+ 	}
 
-	// If there is a comment after colour, remove it.
-	file.get(c);
-	if (c != '\n') {
-		file.get(c);
-		while (c != '\n') {
-			file.get(c);
-		}
+
+	// get file pointer up to data if it's not already, removing comments along the way.
+ 	file.get(c);
+ 	while (c < '0' || c > '9') {
+ 		appendCharToCharArray(c);
+ 		file.get(c);
+ 		while (c != '\n') {
+ 			appendCharToCharArray(c);
+ 			file.get(c);
+ 		}
+ 		file.get(c); 
+ 	}
+ 	file.unget();
+
+	/* 
+	 * EXPLOIT ID  : 3a
+	 * EXPLOIT KIND: Format string vulnerability
+	 * DESCRIPTION : 
+	 */
+	 if (strlen(comment) > 0) {
+	 	printf("Comments from input file: \"");
+	 	printf(comment);
+	 	printf("\".\n");
+	 }
+	 return colour;
 	}
 
 
-	// get file pointer up to data if it's not already
-	file.get(c);
-	while (c < '0' || c > '9') {
-		file.get(c);
-		while (c != '\n') {
-			file.get(c);
-		}
-		file.get(c); // get this first char of the new line
-	}
-	file.unget();
-
-	return colour;
-}
-
-
-
+/* FUNCTION: writeFile
+ * IMPORT: An image and location to where the output should go
+ * DESCRIPTION:
+ * Purpose is to write the image to a file at the specified location in the P3 ppm format.
+ */
 void writeFile(Image *image, std::string location){
-	std::ofstream outputFile;
-	outputFile.open("output.ppm"); // will use location later
+ 	std::ofstream outputFile;
+ 	outputFile.open(location.c_str()); 
 
+	// assert: source image was a P3 format.
+ 	outputFile << "P3\n";
+ 	outputFile << image->getCols() << " " << image->getRows() << '\n';
+ 	outputFile << image->getColours() << '\n';
 
-	outputFile << "P3\n";
-	outputFile << image->getCols() << " " << image->getRows() << '\n';
-	outputFile << image->getColours() << '\n';
+ 	int cols = image->getCols();
+ 	int rows = image->getRows();
 
-	int cols = image->getCols();
-	int rows = image->getRows();
+ 	int *imageBuffer = new int[3*cols * rows];
 
-	int index = 0;
-	int *imageBuffer = new int[3*cols * rows];
-	//for (int i = 0; i < image->getCols() * image->getRows(); i++) {
-	/*for (int i = 0; i < rows; i++) {
-		memcpy(&imageBuffer[index], &image->getRed()[i*cols], sizeof(int)*image->getCols());
-		index+= cols;
-		memcpy(&imageBuffer[index], &image->getGreen()[i*cols], sizeof(int)*image->getCols());
-		index+= cols;
-		memcpy(&imageBuffer[index], &image->getBlue()[i*cols], sizeof(int)*image->getCols());
-		index+= cols;*/
+ 	int pCount = 0;
+ 	for (int i=0;i<rows;i++) {
+ 		for (int j=0;j<cols*3;j+=3) {
 
-	int r,g,b;
-	int pCount = 0;
-	for (int i=0;i<rows;i++) {
-		for (int j=0;j<cols*3;j+=3) {
+ 			imageBuffer[i*cols*3+j + 0] = image->getRed()[pCount];
+ 
+ 			imageBuffer[i*cols*3+j + 1] = image->getGreen()[pCount];
 
-			//std::cout << "Writing red[" << pCount << "] to imageBuffer[" << i*cols*3+j + 0 << "]." << std::endl; 
-			imageBuffer[i*cols*3+j + 0] = image->getRed()[pCount];
+ 			imageBuffer[i*cols*3+j + 2] = image->getBlue()[pCount];
 
-			//std::cout << "Writing green[" << pCount << "] to imageBuffer[" << i*cols*3+j + 1 << "]." << std::endl; 
-			imageBuffer[i*cols*3+j + 1] = image->getGreen()[pCount];
+ 			pCount++;
 
-			//std::cout << "Writing blue[" << pCount << "] to imageBuffer[" << i*cols*3+j + 2 << "]." << std::endl; 
-			imageBuffer[i*cols*3+j + 2] = image->getBlue()[pCount];
+ 		}
+ 	}
 
-			pCount++;
+	// Could change the hardcoded integers per line at some point
+	// int digits = 0; do { number /= 10; digits++; } while (number != 0);
 
-		}
-	}
+ 	for (int i=0;i<rows*(cols*3);i++) {
+ 		if (i == 0) {
+ 		} else if (i % 9 == 0) {
+ 			outputFile << '\n';
+ 		} else {
+ 			outputFile << " ";
+ 		}
+ 		outputFile << imageBuffer[i];
 
-
-/*std::cout << "PRINTING IMAGEBUFFER TO WRITE TO FILE:\n";
-for (int i=0;i<rows*cols*3;i++) {
-	std::cout << imageBuffer[i] << " ";
-}*/
-
-// use this later maybe: int digits = 0; do { number /= 10; digits++; } while (number != 0);
-
-	for (int i=0;i<rows*(cols*3);i++) {
-		if (i == 0) {
-		} else if (i % 9 == 0) {
-		//	cout << i << " is % 27!" << endl;
-			outputFile << '\n';
-		} else {
-			outputFile << " ";
-		}
-	//	std::cout << "Writing " << imageBuffer[i] << " to file." << std::endl;
-		outputFile << imageBuffer[i];
-		//
-	}
-	outputFile.flush();
-	delete[] imageBuffer;
+ 	}
+ 	outputFile.flush();
+ 	delete[] imageBuffer;
 
 }
 
 
-
-Image* loadImage(char* location){
-
-		// INPUT ----------------------------
-	std::ifstream file;
-	file.open(location); // = argv[1];
-
-
-	Image *image = NULL;
-	std::string inFormat;
-	
-	//if (strcmp(argv[1], "copy/flip/resize/tile") == 0)
-
-	if (file.is_open()) {
-		inFormat = readFormat(file);
-		
-		if (inFormat.compare(formats[0]) == 0) {
-			std::cout << "Invalid format (P1).\n";
-			exit(EXIT_FAILURE);
-
-		} else if ((inFormat.compare(formats[1]) == 0)) {
-			std::cout << "Invalid format (P2).\n";
-			exit(EXIT_FAILURE);
-
-		} else if ((inFormat.compare(formats[2]) == 0)) {
+/* FUNCTION: loadImage
+ * IMPORT: A file location of a source image to load into memory
+ * DESCRIPTION:
+ * Purpose is to load the image file at the imported location into an Image object.
+ */
+Image* loadImage(char* fileLocation){
+ 	std::ifstream file;
+ 	file.open(fileLocation); 
 
 
-			int cols, rows, maxColour;
-			readSize(file, &cols, &rows);
-			maxColour = readColour(file);
+ 	Image *image = NULL;
+ 	std::string inFormat;
 
-			image = new Image(rows, cols, maxColour);
+ 	if (file.is_open()) {
+ 		inFormat = readFormat(file);
+
+ 		if (inFormat.compare(POSSIBLE_FORMATS[0]) == 0) {
+ 			printf("Invalid format (P1).\n");
+ 			exit(EXIT_FAILURE);
+
+ 		} else if ((inFormat.compare(POSSIBLE_FORMATS[1]) == 0)) {
+ 			printf("Invalid format (P2).\n");
+ 			exit(EXIT_FAILURE);
+
+ 		} else if ((inFormat.compare(POSSIBLE_FORMATS[2]) == 0)) {
+
+			// read metadata about image
+ 			int cols, rows, maxColour;
+ 			readSize(file, &cols, &rows);
+ 			maxColour = readColour(file);
+
+			// create new image with metadata
+ 			image = new Image(rows, cols, maxColour);
+
+ 			printf("Processing a %d by %d P3 format image", cols, rows);
+ 			printf(" with max colours of %d.\n", maxColour);
 
 
-			std::cout << "Processing a "<< cols << " by " << rows << " P3 format image";
-			std::cout << " with max colours of " << maxColour << "\n";
+			// red[i][j] is then rewritten as red[i*cols+j] when using 1D arrays.
 
+ 			int *imageBuffer = new int[(3*cols) * rows];
 
-			// red[i][j] is then rewritten as
-			// red[i*cols+j]
+			// create space on heap for image data
+ 			int *red = new int[rows*cols];
+ 			int *green = new int[rows*cols];
+ 			int *blue = new int[rows*cols];
 
-			int *imageBuffer = new int[(3*cols) * rows];
-			
+			// load image data from file into imageBuffer for processing
+ 			getImage(file, imageBuffer, rows, cols);
 
-			int *red = new int[rows*cols];
-			int *green = new int[rows*cols];
-			int *blue = new int[rows*cols];
-			int ipix = 0;
-
-			getImage(file, imageBuffer, rows, cols);
-
-
-
-			int r,g,b;
-			int pCount=0;
-
-			for (int i=0;i<rows;i++) {
-				for (int j=0;j<cols*3;j+=3) {
-					//cout << "starting from pixel: " << i*cols*3+j << endl;
-
-					//cout << imageBuffer[i*cols*3+j] << " into red[" << pCount << "].\n";
-					red[pCount] = imageBuffer[i*cols*3+j];
-
-					//cout << imageBuffer[i*cols*3+j+1] << " into green[" << pCount << "].\n";
-					green[pCount] = imageBuffer[i*cols*3+j + 1];
-
-					//cout << imageBuffer[i*cols*3+j + 2] << " into blue[" << pCount << "].\n";
-					blue[pCount] = imageBuffer[i*cols*3+j + 2];
-					pCount++;
-				}
-			}
+			// process data into r, g and b arrays.
+ 			int pCount=0;
+ 			for (int i=0;i<rows;i++) {
+ 				for (int j=0;j<cols*3;j+=3) {
+ 					red[pCount] = imageBuffer[i*cols*3+j];
+ 					green[pCount] = imageBuffer[i*cols*3+j + 1];
+ 					blue[pCount] = imageBuffer[i*cols*3+j + 2];
+ 					pCount++;
+ 				}
+ 			}
 
 			// freeing imageBuffer now we are done reading from it.
-			delete[] imageBuffer;
+ 			delete[] imageBuffer;
 
-			image->setRed(red);
-			image->setBlue(blue);
-			image->setGreen(green);
+			// assign r, g and b arrays to the newly created image
+ 			image->setRed(red);
+ 			image->setBlue(blue);
+ 			image->setGreen(green);
 
-			red = NULL;
-			blue = NULL;
-			green = NULL;
+ 			red = NULL;
+ 			blue = NULL;
+ 			green = NULL;
 
-			file.close();
-			return image;
+ 			file.close();
 
-			} else {
-				std::cout << inFormat << " does not match" << formats[0] << ".\n";
-				file.close();
-		}
+ 		} else {
+ 			printf("%s does not match \"P3\".\n", inFormat.c_str());
+ 			file.close();
+ 		}
+ 	} else {
+ 		printf("Unable to open file '%s' please try again.\n", fileLocation);
+ 	}
 
-		//file.close();
-	}
-	std::cout << "Unable to open file '" << location << "'" << std::endl;
+ 	return image;
 }
 
 
 
-
-// load specified file into memory to parse it
- void getImage(std::ifstream& f, int *buffer,int rows, int cols){
-	 	//cout << "getting " << (cols*3) << " pixels for buffer\n";
+/* FUNCTION: getImage
+ * IMPORT: A file stream ready to load image data, a buffer to save it into and the
+ * rows and cols of the image we're loading.
+ * DESCRIPTION:
+ * Purpose is to load the image data into the buffer for processing. Helper function for
+ * loadImage.
+ */
+void getImage(std::ifstream& f, int *buffer,int rows, int cols){
  	int count = 0;
-	 	for (int i=0;i<3*cols*rows;i++) { 
-	 		f >> buffer[i];
-	 		count++;
-	 	}
-	 	//cout << "Just put " << count << " pixels into the buffer." << endl;
+ 	for (int i=0;i<3*cols*rows;i++) { 
+ 		f >> buffer[i];
+ 		count++;
+ 	}
+}
 
-	 }

@@ -1,3 +1,12 @@
+/*
+ * FILE: Image.cpp
+ * AUTHOR: Christopher Webb
+ * DATE CREATED: 5/10/14
+ * DESCRIPTION:
+ * Image.cpp is a class file that holds the blueprints of an Image object.
+ */
+
+
 #include "Image.hpp"
 #include <iostream>
 
@@ -20,7 +29,6 @@ Image::Image(){
 }
 
 Image::~Image(){
-	std::cout << "Freeing an image." << std::endl;
 	delete[] red;
 	delete[] green;
 	delete[] blue;
@@ -34,29 +42,29 @@ int Image::getCols(){
 	return cols;
 }
 
-	int* Image::getRed(){
-	 return red; 
-	}
+int* Image::getRed(){
+	return red; 
+}
 
-	int* Image::getBlue(){
-	 return blue; 
-	}
+int* Image::getBlue(){
+	return blue; 
+}
 
-	int* Image::getGreen(){
-	 return green; 
-	}
+int* Image::getGreen(){
+	return green; 
+}
 
-	void Image::setRed(int *inRed){
-	 red = inRed; 
-	}
+void Image::setRed(int *inRed){
+	red = inRed; 
+}
 
-	void Image::setBlue(int *inBlue){
-	 blue = inBlue; 
-	}
+void Image::setBlue(int *inBlue){
+	blue = inBlue; 
+}
 
-	void Image::setGreen(int *inGreen){
-	 green = inGreen; 
-	}
+void Image::setGreen(int *inGreen){
+	green = inGreen; 
+}
 
 void Image::setColours(int inColours){
 	maxColours = inColours;
@@ -66,7 +74,6 @@ int Image::getColours(){
 	return maxColours;
 }
 
-
 void Image::setRows(int inRows){
 	rows = inRows;
 }
@@ -74,3 +81,4 @@ void Image::setRows(int inRows){
 void Image::setCols(int inCols){
 	cols = inCols;
 }
+
